@@ -1,1 +1,62 @@
 # Forecast-Tracker
+
+Node.js service that runs in Docker, fetches free 7–14 day forecasts daily, and writes historical forecast snapshots into InfluxDB 2 through the HTTP write API.
+
+## What this collects
+
+Each daily run fetches forecast days from Open-Meteo and stores:
+- minimum temperature (`min_temp_c`)
+- maximum temperature (`max_temp_c`)
+- chance of rainfall (`rain_chance_pct`)
+- weather summary (`description`, e.g. overcast/sunny/thunderstorm)
+- weather code (`weather_code`)
+
+To compare forecast consistency over time, each point includes:
+- `forecast_date` (the future date being predicted)
+- `issue_date` (the day the forecast was generated)
+- `horizon_days` (days between issue and forecast date)
+- `source` (forecast provider, currently `open-meteo`)
+- `location`
+
+This makes it easy to query how the prediction for the same `forecast_date` changes as `issue_date` gets closer.
+
+## Extensibility
+
+Forecast providers are source abstractions. `OpenMeteoSource` is one implementation.  
+Additional providers can be added by implementing a source that returns the normalized forecast shape:
+
+```js
+{
+  source,
+  forecastDate,
+  minTempC,
+  maxTempC,
+  rainChancePct,
+  weatherCode,
+  description
+}
+```
+
+## Environment variables
+
+Copy `.env.example` and set:
+
+- `LATITUDE`, `LONGITUDE`, `LOCATION_NAME`
+- `FORECAST_DAYS` (clamped to 7..14)
+- `INFLUX_URL`, `INFLUX_ORG`, `INFLUX_BUCKET`, `INFLUX_TOKEN`
+- `RUN_ON_START` (default `true`)
+- `DRY_RUN` (default `false`, prints line protocol without writing)
+
+## Run locally
+
+```bash
+npm test
+npm start
+```
+
+## Run in Docker
+
+```bash
+docker build -t forecast-tracker .
+docker run --rm --env-file .env forecast-tracker
+```
