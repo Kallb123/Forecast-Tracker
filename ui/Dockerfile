@@ -1,10 +1,10 @@
 # Stage 1 — build the Vue app
 FROM node:20-alpine AS ui-builder
 
-WORKDIR /app/ui
-COPY ui/package.json ui/package-lock.json ./
+WORKDIR /app
+COPY package.json package-lock.json ./
 RUN npm ci
-COPY ui/ ./
+COPY . ./
 RUN npm run build
 
 # Stage 2 — run the API + static server
@@ -14,8 +14,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-COPY src/ ./src/
-COPY --from=ui-builder /app/ui/dist ./ui/dist
+COPY server.js ./
+COPY --from=ui-builder /app/dist ./dist
 
 EXPOSE 3000
-CMD ["node", "src/server.js"]
+CMD ["node", "server.js"]

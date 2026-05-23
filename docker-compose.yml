@@ -1,6 +1,6 @@
 services:
   forecast-tracker:
-    build: .
+    build: ./tracker
     restart: unless-stopped
     depends_on:
       influxdb:
@@ -25,8 +25,8 @@ services:
 
   forecast-ui:
     build:
-      context: .
-      dockerfile: Dockerfile.ui
+      context: ./ui
+      dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
       influxdb:

@@ -1,9 +1,10 @@
-"use strict";
+import express from "express";
+import path from "path";
+import fs from "fs";
+import rateLimit from "express-rate-limit";
+import { fileURLToPath } from "url";
 
-const express = require("express");
-const path = require("path");
-const fs = require("fs");
-const rateLimit = require("express-rate-limit");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
@@ -236,7 +237,7 @@ from(bucket: "${bucket}")
 // ---------------------------------------------------------------------------
 // Serve built Vue app (production)
 // ---------------------------------------------------------------------------
-const UI_DIST = path.join(__dirname, "..", "ui", "dist");
+const UI_DIST = path.join(__dirname, "dist");
 
 if (fs.existsSync(UI_DIST)) {
   app.use(express.static(UI_DIST));

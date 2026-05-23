@@ -5,16 +5,19 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
-      - 'test/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'Dockerfile'
+      - 'tracker/src/**'
+      - 'tracker/test/**'
+      - 'tracker/package.json'
+      - 'tracker/package-lock.json'
+      - 'tracker/Dockerfile'
       - '.github/workflows/test-collector.yml'
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tracker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +26,7 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: tracker/package-lock.json
       - name: Install
         run: npm ci
       - name: Test
