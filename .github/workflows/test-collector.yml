@@ -23,6 +23,7 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: 'npm'
+          cache-dependency-path: package-lock.json
       - name: Install
         run: npm ci
       - name: Test
