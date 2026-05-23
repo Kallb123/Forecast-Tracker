@@ -23,6 +23,28 @@ services:
       RUN_ON_START: "true"
       DRY_RUN: "false"
 
+  forecast-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    restart: unless-stopped
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      # InfluxDB connection — must match the influxdb service below
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_ORG: my-org
+      INFLUX_BUCKET: weather_forecasts
+      INFLUX_TOKEN: CHANGE_ME_use_a_long_random_string
+
+      # Default location shown in the UI
+      LOCATION_NAME: london
+
+      UI_PORT: "3000"
+
   influxdb:
     image: influxdb:2
     restart: unless-stopped
