@@ -1,0 +1,47 @@
+services:
+  forecast-tracker:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    environment:
+      # Location
+      LATITUDE: 51.5074
+      LONGITUDE: -0.1278
+      LOCATION_NAME: london
+      FORECAST_DAYS: 14
+      FORECAST_SOURCE: open-meteo
+
+      # InfluxDB connection — must match the influxdb service below
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_ORG: my-org
+      INFLUX_BUCKET: weather_forecasts
+      INFLUX_TOKEN: CHANGE_ME_use_a_long_random_string
+
+      # Behaviour
+      RUN_ON_START: "true"
+      DRY_RUN: "false"
+
+  influxdb:
+    image: influxdb:2
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: CHANGE_ME_use_a_strong_password
+      DOCKER_INFLUXDB_INIT_ORG: my-org
+      DOCKER_INFLUXDB_INIT_BUCKET: weather_forecasts
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: CHANGE_ME_use_a_long_random_string
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  influxdb-data:
