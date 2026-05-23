@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - 'ui/**'
-      - 'Dockerfile.ui'
       - '.github/workflows/test-ui.yml'
 
 jobs:

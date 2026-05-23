@@ -26,7 +26,7 @@ services:
   forecast-ui:
     build:
       context: .
-      dockerfile: Dockerfile.ui
+      dockerfile: ui/Dockerfile
     restart: unless-stopped
     depends_on:
       influxdb:
