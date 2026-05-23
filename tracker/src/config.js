@@ -30,7 +30,7 @@ function getConfig() {
       latitude: Number.parseFloat(process.env.LATITUDE ?? "0"),
       longitude: Number.parseFloat(process.env.LONGITUDE ?? "0"),
       forecastDays: parseDays(process.env.FORECAST_DAYS),
-      intervalMs: DAY_MS,
+      intervalMs: Number.parseInt(DAY_MS/6),
       runOnStart: parseBoolean(process.env.RUN_ON_START, true),
       dryRun: parseBoolean(process.env.DRY_RUN, false)
     },
