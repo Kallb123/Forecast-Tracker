@@ -187,10 +187,15 @@ app.get("/api/forecast-history", async (req, res) => {
       return res.status(400).json({ error: "Invalid location parameter" });
     }
 
-    // Query a window that covers all possible issue dates for this forecast_date.
-    // Forecasts are at most ~14 days ahead, so the earliest possible write is
-    // 15 days before the forecast_date. We add a 1-day buffer on each side.
+    // Compute the query time window. The validated date string always produces a
+    // finite timestamp; reject the unlikely edge case of an invalid calendar date
+    // (e.g. "2026-02-31") where the Date constructor would wrap to a different day.
     const forecastTs = new Date(`${date}T00:00:00Z`).getTime();
+    if (!Number.isFinite(forecastTs)) {
+      return res.status(400).json({ error: "date parameter is not a valid calendar date" });
+    }
+    // rangeStart/rangeStop are ISO timestamp strings (digits, hyphens, colons, Z only)
+    // derived entirely from the server-side Date calculation — no injection risk.
     const rangeStart = new Date(forecastTs - 16 * 86400 * 1000).toISOString();
     const rangeStop = new Date(forecastTs + 2 * 86400 * 1000).toISOString();
 

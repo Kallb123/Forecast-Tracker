@@ -232,10 +232,10 @@ onMounted(loadLocations);
 onUnmounted(destroyChart);
 
 // ---------------------------------------------------------------------------
-// Computed helpers for summary
+// Helpers for summary strip
 // ---------------------------------------------------------------------------
-const first = () => historyData.value[0];
-const last = () => historyData.value.at(-1);
+const getFirstHistoryItem = () => historyData.value[0];
+const getLastHistoryItem = () => historyData.value.at(-1);
 </script>
 
 <template>
@@ -317,31 +317,31 @@ const last = () => historyData.value.at(-1);
             <div class="summary-label">Snapshots recorded</div>
           </div>
           <div class="summary-item">
-            <div class="summary-value">{{ first()?.issueDate || "—" }}</div>
+            <div class="summary-value">{{ getFirstHistoryItem()?.issueDate || "—" }}</div>
             <div class="summary-label">
               First forecast
-              <span v-if="first()?.horizonDays != null"
-                >({{ first().horizonDays }}d ahead)</span
+              <span v-if="getFirstHistoryItem()?.horizonDays != null"
+                >({{ getFirstHistoryItem().horizonDays }}d ahead)</span
               >
             </div>
           </div>
           <div class="summary-item">
-            <div class="summary-value">{{ last()?.issueDate || "—" }}</div>
+            <div class="summary-value">{{ getLastHistoryItem()?.issueDate || "—" }}</div>
             <div class="summary-label">
               Latest forecast
-              <span v-if="last()?.horizonDays != null"
-                >({{ last().horizonDays }}d ahead)</span
+              <span v-if="getLastHistoryItem()?.horizonDays != null"
+                >({{ getLastHistoryItem().horizonDays }}d ahead)</span
               >
             </div>
           </div>
           <div class="summary-item">
             <div class="summary-value">
-              {{ last()?.maxTempC ?? "—" }}°C / {{ last()?.minTempC ?? "—" }}°C
+              {{ getLastHistoryItem()?.maxTempC ?? "—" }}°C / {{ getLastHistoryItem()?.minTempC ?? "—" }}°C
             </div>
             <div class="summary-label">Latest max / min temp</div>
           </div>
           <div class="summary-item">
-            <div class="summary-value">{{ last()?.rainChancePct ?? "—" }}%</div>
+            <div class="summary-value">{{ getLastHistoryItem()?.rainChancePct ?? "—" }}%</div>
             <div class="summary-label">Latest rain chance</div>
           </div>
         </div>
