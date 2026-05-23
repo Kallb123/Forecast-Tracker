@@ -1,6 +1,6 @@
 # Forecast-Tracker
 
-Node.js service that runs in Docker, fetches free 7–14 day forecasts daily, and writes historical forecast snapshots into InfluxDB 2 through the HTTP write API.
+Node.js service that runs in Docker, fetches free 7–14 day forecasts regularly, and writes historical forecast snapshots into InfluxDB 2 through the HTTP write API.
 
 ## What this collects
 
