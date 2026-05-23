@@ -3,8 +3,18 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
+
+// Rate limit all /api/* routes — 120 requests per IP per minute
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use("/api", apiLimiter);
 
 // ---------------------------------------------------------------------------
 // Config — reads the same env vars as the collector but without validation
@@ -225,7 +235,7 @@ const UI_DIST = path.join(__dirname, "..", "ui", "dist");
 
 if (fs.existsSync(UI_DIST)) {
   app.use(express.static(UI_DIST));
-  app.get("/{*path}", (_req, res) => {
+  app.get(/(.*)/, (_req, res) => {
     res.sendFile(path.join(UI_DIST, "index.html"));
   });
 } else {
