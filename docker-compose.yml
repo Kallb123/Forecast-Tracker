@@ -1,6 +1,8 @@
 services:
   forecast-tracker:
-    build: ./tracker
+    build:
+      context: ./tracker
+    # image: ghcr.io/kallb123/forecast-tracker/tracker:latest 
     restart: unless-stopped
     depends_on:
       influxdb:
@@ -26,7 +28,7 @@ services:
   forecast-ui:
     build:
       context: ./ui
-      dockerfile: Dockerfile
+    # image: ghcr.io/kallb123/forecast-tracker/ui:latest
     restart: unless-stopped
     depends_on:
       influxdb:
