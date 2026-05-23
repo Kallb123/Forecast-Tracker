@@ -1,7 +1,7 @@
 {
   "name": "forecast-tracker",
-  "version": "1.0.0",
-  "description": "Daily weather forecast ingestion to InfluxDB 2 for forecast consistency tracking",
+  "version": "1.0.1",
+  "description": "Regular weather forecast ingestion to InfluxDB 2 for forecast consistency tracking",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
