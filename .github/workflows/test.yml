@@ -19,5 +19,11 @@ jobs:
         run: npm ci
       - name: Test
         run: npm test
-      - name: Build
-        run: npm build
+      - name: Syntax check
+        run: find src -name '*.js' -exec node --check {} \;
+      - name: Smoke test (dry run)
+        env:
+          DRY_RUN: "true"
+          LATITUDE: "51.5"
+          LONGITUDE: "-0.1"
+        run: npm run smoke

@@ -6,7 +6,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node --test"
+    "test": "node --test",
+    "smoke": "node -e \"const {runCollectionCycle} = require('./src/index'); runCollectionCycle().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })\""
   },
   "engines": {
     "node": ">=18.0.0"
