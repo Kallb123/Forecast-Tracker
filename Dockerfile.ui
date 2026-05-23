@@ -11,10 +11,10 @@ RUN npm run build
 FROM node:20-alpine
 
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY tracker/package.json tracker/package-lock.json ./
 RUN npm ci --omit=dev
 
-COPY src/ ./src/
+COPY tracker/src/ ./src/
 COPY --from=ui-builder /app/ui/dist ./ui/dist
 
 EXPOSE 3000

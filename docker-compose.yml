@@ -1,6 +1,6 @@
 services:
   forecast-tracker:
-    build: .
+    build: ./tracker
     restart: unless-stopped
     depends_on:
       influxdb:
