@@ -60,3 +60,15 @@ npm start
 docker build -t forecast-tracker .
 docker run --rm --env-file .env forecast-tracker
 ```
+
+## Run with Docker Compose
+
+A `docker-compose.yml` is provided that starts both the forecast-tracker and an InfluxDB 2 instance.
+
+The sample values in the file are pre-wired so the two services connect automatically. Before running, update `LATITUDE`, `LONGITUDE`, `LOCATION_NAME`, and — importantly — replace the `CHANGE_ME_*` credential placeholders with strong, unique values in both the `forecast-tracker` and `influxdb` service sections.
+
+```bash
+docker compose up -d
+```
+
+InfluxDB will be available at <http://localhost:8086>. Log in with the username and password set in the `influxdb` service environment (`admin` / `adminpassword` by default).
