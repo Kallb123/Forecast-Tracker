@@ -3,6 +3,8 @@ const { OpenMeteoSource } = require("./sources/openMeteoSource");
 const { buildPayload } = require("./influx/forecastToLineProtocol");
 const { InfluxWriter } = require("./influx/influxWriter");
 
+const { version: VERSION } = require("../package.json");
+
 function validateConfig(config) {
   const { latitude, longitude } = config.app;
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
@@ -76,6 +78,7 @@ function startScheduler(config = getConfig()) {
 }
 
 if (require.main === module) {
+  console.log(`[forecast-tracker] v${VERSION} starting`);
   startScheduler();
 }
 
