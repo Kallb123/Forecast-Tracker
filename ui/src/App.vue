@@ -2,6 +2,10 @@
 import { ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { Chart, registerables } from "chart.js";
 
+/* eslint-disable no-undef */
+const appVersion = __APP_VERSION__;
+/* eslint-enable no-undef */
+
 Chart.register(...registerables);
 
 // ---------------------------------------------------------------------------
@@ -439,6 +443,9 @@ function fmtVariance(val) {
         </div>
       </section>
     </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">v{{ appVersion }}</footer>
   </div>
 </template>
 
@@ -472,6 +479,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
 .app {
@@ -794,5 +802,15 @@ body {
   .chart-card {
     min-height: 310px;
   }
+}
+
+/* ── Footer ────────────────────────────────────────────────── */
+.app-footer {
+  text-align: center;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
 }
 </style>

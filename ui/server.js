@@ -6,6 +6,9 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const pkg = JSON.parse(fs.readFileSync(new URL("./package.json", import.meta.url), "utf8"));
+const VERSION = pkg.version;
+
 const app = express();
 
 // Rate limit all /api/* routes — 120 requests per IP per minute
@@ -325,6 +328,11 @@ from(bucket: "${bucket}")
   }
 });
 
+// GET /api/health
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", version: VERSION });
+});
+
 // ---------------------------------------------------------------------------
 // Serve built Vue app (production)
 // ---------------------------------------------------------------------------
@@ -347,5 +355,5 @@ if (fs.existsSync(UI_DIST)) {
 // ---------------------------------------------------------------------------
 const PORT = parseInt(process.env.UI_PORT || "3000", 10);
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`[forecast-ui] listening on http://0.0.0.0:${PORT}`);
+  console.log(`[forecast-ui] v${VERSION} listening on http://0.0.0.0:${PORT}`);
 });
