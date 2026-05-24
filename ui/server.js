@@ -234,6 +234,97 @@ from(bucket: "${bucket}")
   }
 });
 
+// GET /api/accuracy-by-horizon?location=london
+app.get("/api/accuracy-by-horizon", async (req, res) => {
+  try {
+    const { bucket, defaultLocation } = getInfluxConfig();
+    const location = req.query.location || defaultLocation;
+
+    if (!isSafeLocation(location)) {
+      return res.status(400).json({ error: "Invalid location parameter" });
+    }
+
+    const csv = await queryInflux(`
+from(bucket: "${bucket}")
+  |> range(start: -3650d)
+  |> filter(fn: (r) => r._measurement == "forecast_daily")
+  |> filter(fn: (r) => r.location == "${location}")
+  |> filter(fn: (r) =>
+      r._field == "max_temp_c" or
+      r._field == "min_temp_c" or
+      r._field == "rain_chance_pct" or
+      r._field == "horizon_days")
+  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> sort(columns: ["_time"])
+`);
+
+    const rows = parseInfluxCSV(csv);
+
+    // Group by forecast_date; within each date, key by horizon_days
+    const byDate = {};
+    for (const r of rows) {
+      if (!r.forecast_date || r.max_temp_c === "" || r.horizon_days === "") continue;
+      const h = parseInt(r.horizon_days, 10);
+      if (!Number.isFinite(h)) continue;
+      if (!byDate[r.forecast_date]) byDate[r.forecast_date] = {};
+      byDate[r.forecast_date][h] = {
+        maxTempC: parseFloat(r.max_temp_c),
+        minTempC: parseFloat(r.min_temp_c),
+        rainChancePct: parseFloat(r.rain_chance_pct)
+      };
+    }
+
+    // Accumulate absolute errors per horizon vs the horizon-0 same-day reference forecast
+    const acc = {};
+    for (let h = 0; h <= 14; h++) {
+      acc[h] = { maxTemp: [], minTemp: [], rainChance: [] };
+    }
+
+    for (const horizons of Object.values(byDate)) {
+      const actual = horizons[0];
+      if (!actual) continue;
+      for (let h = 0; h <= 14; h++) {
+        const f = horizons[h];
+        if (!f) continue;
+        acc[h].maxTemp.push(Math.abs(f.maxTempC - actual.maxTempC));
+        acc[h].minTemp.push(Math.abs(f.minTempC - actual.minTempC));
+        acc[h].rainChance.push(Math.abs(f.rainChancePct - actual.rainChancePct));
+      }
+    }
+
+    function mae(arr) {
+      if (!arr.length) return null;
+      return arr.reduce((s, v) => s + v, 0) / arr.length;
+    }
+
+    function variance(arr) {
+      if (arr.length < 2) return null;
+      const mean = arr.reduce((s, v) => s + v, 0) / arr.length;
+      return arr.reduce((s, v) => s + (v - mean) ** 2, 0) / arr.length;
+    }
+
+    const accuracy = [];
+    for (let h = 0; h <= 14; h++) {
+      const a = acc[h];
+      accuracy.push({
+        horizon: h,
+        count: a.maxTemp.length,
+        maxTempMAE: mae(a.maxTemp),
+        maxTempVariance: variance(a.maxTemp),
+        minTempMAE: mae(a.minTemp),
+        minTempVariance: variance(a.minTemp),
+        rainChanceMAE: mae(a.rainChance),
+        rainChanceVariance: variance(a.rainChance)
+      });
+    }
+
+    res.json({ location, accuracy });
+  } catch (err) {
+    console.error("[forecast-ui] /api/accuracy-by-horizon error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Serve built Vue app (production)
 // ---------------------------------------------------------------------------

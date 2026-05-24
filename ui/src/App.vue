@@ -12,7 +12,9 @@ const selectedLocation = ref("");
 const forecastDates = ref([]);
 const selectedDate = ref("");
 const historyData = ref([]);
+const accuracyData = ref([]);
 const loading = ref(false);
+const accuracyLoading = ref(false);
 const error = ref("");
 const chartRef = ref(null);
 
@@ -49,6 +51,7 @@ async function loadForecastDates() {
   error.value = "";
   destroyChart();
   historyData.value = [];
+  accuracyData.value = [];
   try {
     const { dates } = await apiFetch(
       `/api/forecast-dates?location=${encodeURIComponent(selectedLocation.value)}`
@@ -61,6 +64,7 @@ async function loadForecastDates() {
   } catch (e) {
     error.value = `Could not load forecast dates: ${e.message}`;
   }
+  loadAccuracyByHorizon();
 }
 
 async function loadForecastHistory() {
@@ -80,6 +84,23 @@ async function loadForecastHistory() {
     error.value = `Could not load forecast history: ${e.message}`;
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadAccuracyByHorizon() {
+  if (!selectedLocation.value) return;
+  accuracyLoading.value = true;
+  accuracyData.value = [];
+  try {
+    const { accuracy } = await apiFetch(
+      `/api/accuracy-by-horizon?location=${encodeURIComponent(selectedLocation.value)}`
+    );
+    accuracyData.value = accuracy;
+  } catch (e) {
+    // Non-critical — don't overwrite the main error
+    console.warn("Could not load accuracy data:", e.message);
+  } finally {
+    accuracyLoading.value = false;
   }
 }
 
@@ -236,6 +257,14 @@ onUnmounted(destroyChart);
 // ---------------------------------------------------------------------------
 const getFirstHistoryItem = () => historyData.value[0];
 const getLastHistoryItem = () => historyData.value.at(-1);
+
+function fmtMAE(val) {
+  return val === null || val === undefined ? "—" : val.toFixed(1);
+}
+
+function fmtVariance(val) {
+  return val === null || val === undefined ? "—" : val.toFixed(1);
+}
 </script>
 
 <template>
@@ -344,6 +373,69 @@ const getLastHistoryItem = () => historyData.value.at(-1);
             <div class="summary-value">{{ getLastHistoryItem()?.rainChancePct ?? "—" }}%</div>
             <div class="summary-label">Latest rain chance</div>
           </div>
+        </div>
+      </section>
+
+      <!-- Accuracy by horizon table -->
+      <section
+        v-if="accuracyLoading || accuracyData.length"
+        class="card accuracy-card"
+        aria-label="Forecast accuracy by horizon"
+      >
+        <h2 class="summary-heading">🎯 Forecast Accuracy by Horizon Day</h2>
+        <p class="accuracy-desc">
+          Mean Absolute Error (MAE) and variance of each metric compared to the horizon&#8209;0
+          same-day reference forecast, aggregated across all forecast dates for
+          <strong>{{ selectedLocation }}</strong>. Horizon&nbsp;0 is the forecast issued on
+          the target date itself and is used as the reference point.
+        </p>
+
+        <div v-if="accuracyLoading" class="accuracy-loading">
+          <div class="spinner" role="status" aria-label="Loading accuracy data"></div>
+          <span>Calculating accuracy…</span>
+        </div>
+
+        <div v-else class="accuracy-table-wrap">
+          <table class="accuracy-table" aria-label="Forecast accuracy by horizon day">
+            <thead>
+              <tr>
+                <th rowspan="2" class="th-horizon">Horizon<br />(days)</th>
+                <th rowspan="2" class="th-count">Dates<br />sampled</th>
+                <th colspan="2" class="th-group th-max-temp">Max Temp (°C)</th>
+                <th colspan="2" class="th-group th-min-temp">Min Temp (°C)</th>
+                <th colspan="2" class="th-group th-rain">Rain Chance (%)</th>
+              </tr>
+              <tr>
+                <th class="th-metric">MAE</th>
+                <th class="th-metric">Variance</th>
+                <th class="th-metric">MAE</th>
+                <th class="th-metric">Variance</th>
+                <th class="th-metric">MAE</th>
+                <th class="th-metric">Variance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in accuracyData"
+                :key="row.horizon"
+                :class="{ 'row-zero': row.horizon === 0, 'row-no-data': row.count === 0 }"
+              >
+                <td class="td-horizon">{{ row.horizon }}</td>
+                <td class="td-count">{{ row.count || "—" }}</td>
+                <template v-if="row.count > 0">
+                  <td>{{ fmtMAE(row.maxTempMAE) }}</td>
+                  <td>{{ fmtVariance(row.maxTempVariance) }}</td>
+                  <td>{{ fmtMAE(row.minTempMAE) }}</td>
+                  <td>{{ fmtVariance(row.minTempVariance) }}</td>
+                  <td>{{ fmtMAE(row.rainChanceMAE) }}</td>
+                  <td>{{ fmtVariance(row.rainChanceVariance) }}</td>
+                </template>
+                <template v-else>
+                  <td colspan="6" class="td-no-data">No data</td>
+                </template>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
     </div>
@@ -577,6 +669,116 @@ body {
   font-size: 0.78rem;
   color: var(--text-muted);
   margin-top: 0.2rem;
+}
+
+/* ── Accuracy table ────────────────────────────────────────── */
+.accuracy-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.accuracy-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.accuracy-loading .spinner {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.accuracy-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.accuracy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  min-width: 560px;
+}
+
+.accuracy-table th,
+.accuracy-table td {
+  padding: 0.55rem 0.75rem;
+  text-align: center;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.accuracy-table thead th {
+  background: var(--bg);
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.th-horizon,
+.th-count {
+  vertical-align: middle;
+}
+
+.th-group {
+  border-bottom: 2px solid var(--border);
+}
+
+.th-max-temp {
+  color: #c2410c;
+}
+
+.th-min-temp {
+  color: #4338ca;
+}
+
+.th-rain {
+  color: #0284c7;
+}
+
+.th-metric {
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.td-horizon {
+  font-weight: 700;
+  color: var(--primary-dark);
+  background: var(--bg);
+}
+
+.td-count {
+  color: var(--text-muted);
+}
+
+.td-no-data {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.row-zero td {
+  background: #f0fdf4;
+}
+
+.row-no-data td {
+  opacity: 0.55;
+}
+
+.accuracy-table tbody tr:hover td {
+  background: #f8fafc;
+}
+
+.row-zero:hover td {
+  background: #dcfce7;
 }
 
 /* ── Responsive ────────────────────────────────────────────── */
