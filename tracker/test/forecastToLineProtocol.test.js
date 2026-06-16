@@ -19,6 +19,7 @@ test("toLineProtocol creates extensible snapshot-friendly InfluxDB point", () =>
       rainChancePct: 43,
       weatherCode: 3,
       intensity: 3,
+      uvIndex: 7,
       description: "overcast"
     }
   });
@@ -30,5 +31,6 @@ test("toLineProtocol creates extensible snapshot-friendly InfluxDB point", () =>
   assert.match(line, /issue_date=2026-05-22/);
   assert.match(line, /horizon_days=7i/);
   assert.match(line, /intensity=3/);
+  assert.match(line, /uv_index=7/);
   assert.match(line, /description="overcast"/);
 });

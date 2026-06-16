@@ -81,7 +81,7 @@ class OpenMeteoSource {
       forecast_days: String(forecastDays),
       timezone: "UTC",
       daily:
-        "temperature_2m_min,temperature_2m_max,precipitation_probability_max,weather_code"
+        "temperature_2m_min,temperature_2m_max,precipitation_probability_max,weather_code,uv_index_max"
     });
 
     const response = await this.fetchImpl(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
@@ -105,7 +105,8 @@ class OpenMeteoSource {
         rainChancePct: daily.precipitation_probability_max[idx] ?? 0,
         weatherCode,
         description: this.getDescription(weatherCode),
-        intensity: this.getIntensity(weatherCode)
+        intensity: this.getIntensity(weatherCode),
+        uvIndex: daily.uv_index_max[idx] ?? 0
       };
     });
   }

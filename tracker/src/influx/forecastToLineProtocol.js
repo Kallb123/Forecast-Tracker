@@ -27,6 +27,7 @@ function toLineProtocol({ measurement = "forecast_daily", locationName, issueDat
     `rain_chance_pct=${Number(forecast.rainChancePct)}`,
     `weather_code=${Number(forecast.weatherCode)}`,
     `intensity=${Number(forecast.intensity)}`,
+    `uv_index=${Number(forecast.uvIndex)}`,
     `horizon_days=${horizonDays}i`,
     `description="${escapeFieldString(forecast.description)}"`
   ].join(",");
