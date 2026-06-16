@@ -10,6 +10,7 @@ Each daily run fetches forecast days from Open-Meteo and stores:
 - chance of rainfall (`rain_chance_pct`)
 - weather summary (`description`, e.g. overcast/sunny/thunderstorm)
 - weather code (`weather_code`)
+- intensity (`intensity`), a custom 1–10 weather impact score derived from the forecast weather code
 
 To compare forecast consistency over time, each point includes:
 - `forecast_date` (the future date being predicted)
@@ -33,9 +34,12 @@ Additional providers can be added by implementing a source that returns the norm
   maxTempC,
   rainChancePct,
   weatherCode,
-  description
+  description,
+  intensity
 }
 ```
+
+Intensity is a custom 1–10 score, where 1 represents clear/full sun and 10 represents severe heavy snow or thunderstorms.
 
 ## Environment variables
 

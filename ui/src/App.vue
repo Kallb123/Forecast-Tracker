@@ -393,6 +393,10 @@ function fmtVariance(val) {
           <strong>{{ selectedLocation }}</strong>. Horizon&nbsp;0 is the forecast issued on
           the target date itself and is used as the reference point.
         </p>
+        <p class="accuracy-note">
+          Intensity is a custom 1–10 weather impact score derived from the forecast
+          weather code, where 1 is clear/full sun and 10 is severe heavy snow or thunderstorms.
+        </p>
 
         <div v-if="accuracyLoading" class="accuracy-loading">
           <div class="spinner" role="status" aria-label="Loading accuracy data"></div>
@@ -408,8 +412,11 @@ function fmtVariance(val) {
                 <th colspan="2" class="th-group th-max-temp">Max Temp (°C)</th>
                 <th colspan="2" class="th-group th-min-temp">Min Temp (°C)</th>
                 <th colspan="2" class="th-group th-rain">Rain Chance (%)</th>
+                <th colspan="2" class="th-group th-intensity">Intensity</th>
               </tr>
               <tr>
+                <th class="th-metric">MAE</th>
+                <th class="th-metric">Variance</th>
                 <th class="th-metric">MAE</th>
                 <th class="th-metric">Variance</th>
                 <th class="th-metric">MAE</th>
@@ -433,9 +440,11 @@ function fmtVariance(val) {
                   <td>{{ fmtVariance(row.minTempVariance) }}</td>
                   <td>{{ fmtMAE(row.rainChanceMAE) }}</td>
                   <td>{{ fmtVariance(row.rainChanceVariance) }}</td>
+                  <td>{{ fmtMAE(row.intensityMAE) }}</td>
+                  <td>{{ fmtVariance(row.intensityVariance) }}</td>
                 </template>
                 <template v-else>
-                  <td colspan="6" class="td-no-data">No data</td>
+                  <td colspan="8" class="td-no-data">No data</td>
                 </template>
               </tr>
             </tbody>
@@ -749,6 +758,10 @@ body {
 
 .th-rain {
   color: #0284c7;
+}
+
+.th-intensity {
+  color: #9333ea;
 }
 
 .th-metric {
