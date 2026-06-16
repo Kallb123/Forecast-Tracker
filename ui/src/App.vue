@@ -408,8 +408,11 @@ function fmtVariance(val) {
                 <th colspan="2" class="th-group th-max-temp">Max Temp (°C)</th>
                 <th colspan="2" class="th-group th-min-temp">Min Temp (°C)</th>
                 <th colspan="2" class="th-group th-rain">Rain Chance (%)</th>
+                <th colspan="2" class="th-group th-intensity">Intensity</th>
               </tr>
               <tr>
+                <th class="th-metric">MAE</th>
+                <th class="th-metric">Variance</th>
                 <th class="th-metric">MAE</th>
                 <th class="th-metric">Variance</th>
                 <th class="th-metric">MAE</th>
@@ -433,9 +436,11 @@ function fmtVariance(val) {
                   <td>{{ fmtVariance(row.minTempVariance) }}</td>
                   <td>{{ fmtMAE(row.rainChanceMAE) }}</td>
                   <td>{{ fmtVariance(row.rainChanceVariance) }}</td>
+                  <td>{{ fmtMAE(row.intensityMAE) }}</td>
+                  <td>{{ fmtVariance(row.intensityVariance) }}</td>
                 </template>
                 <template v-else>
-                  <td colspan="6" class="td-no-data">No data</td>
+                  <td colspan="8" class="td-no-data">No data</td>
                 </template>
               </tr>
             </tbody>

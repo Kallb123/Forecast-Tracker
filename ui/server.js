@@ -256,6 +256,7 @@ from(bucket: "${bucket}")
       r._field == "max_temp_c" or
       r._field == "min_temp_c" or
       r._field == "rain_chance_pct" or
+      r._field == "intensity" or
       r._field == "horizon_days")
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
   |> sort(columns: ["_time"])
@@ -273,14 +274,15 @@ from(bucket: "${bucket}")
       byDate[r.forecast_date][h] = {
         maxTempC: parseFloat(r.max_temp_c),
         minTempC: parseFloat(r.min_temp_c),
-        rainChancePct: parseFloat(r.rain_chance_pct)
+        rainChancePct: parseFloat(r.rain_chance_pct),
+        intensity: parseFloat(r.intensity)
       };
     }
 
     // Accumulate absolute errors per horizon vs the horizon-0 same-day reference forecast
     const acc = {};
     for (let h = 0; h <= 14; h++) {
-      acc[h] = { maxTemp: [], minTemp: [], rainChance: [] };
+      acc[h] = { maxTemp: [], minTemp: [], rainChance: [], intensity: [] };
     }
 
     for (const horizons of Object.values(byDate)) {
@@ -292,6 +294,7 @@ from(bucket: "${bucket}")
         acc[h].maxTemp.push(Math.abs(f.maxTempC - actual.maxTempC));
         acc[h].minTemp.push(Math.abs(f.minTempC - actual.minTempC));
         acc[h].rainChance.push(Math.abs(f.rainChancePct - actual.rainChancePct));
+        acc[h].intensity.push(Math.abs(f.intensity - actual.intensity));
       }
     }
 
@@ -317,7 +320,9 @@ from(bucket: "${bucket}")
         minTempMAE: mae(a.minTemp),
         minTempVariance: variance(a.minTemp),
         rainChanceMAE: mae(a.rainChance),
-        rainChanceVariance: variance(a.rainChance)
+        rainChanceVariance: variance(a.rainChance),
+        intensityMAE: mae(a.intensity),
+        intensityVariance: variance(a.intensity)
       });
     }
 
