@@ -11,6 +11,7 @@ Each daily run fetches forecast days from Open-Meteo and stores:
 - weather summary (`description`, e.g. overcast/sunny/thunderstorm)
 - weather code (`weather_code`)
 - intensity (`intensity`), a custom 1–10 weather impact score derived from the forecast weather code
+- UV index maximum (`uv_index`)
 
 To compare forecast consistency over time, each point includes:
 - `forecast_date` (the future date being predicted)
@@ -35,7 +36,8 @@ Additional providers can be added by implementing a source that returns the norm
   rainChancePct,
   weatherCode,
   description,
-  intensity
+  intensity,
+  uvIndex
 }
 ```
 
