@@ -175,6 +175,32 @@ function renderChart(data) {
           fill: true,
           borderDash: [6, 4],
           yAxisID: "yRain"
+        },
+        {
+          label: "Intensity (1-10)",
+          data: data.map((d) => d.intensity),
+          borderColor: "#9333ea",
+          backgroundColor: "rgba(147,51,234,0.12)",
+          borderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          tension: 0.35,
+          fill: false,
+          borderDash: [3, 3],
+          yAxisID: "yIntensity"
+        },
+        {
+          label: "UV Index",
+          data: data.map((d) => d.uvIndex),
+          borderColor: "#14b8a6",
+          backgroundColor: "rgba(20,184,166,0.12)",
+          borderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          tension: 0.35,
+          fill: false,
+          borderDash: [4, 4],
+          yAxisID: "yUV"
         }
       ]
     },
@@ -242,6 +268,34 @@ function renderChart(data) {
             color: "#0ea5e9"
           },
           grid: { drawOnChartArea: false }
+        },
+        yIntensity: {
+          type: "linear",
+          position: "right",
+          min: 0,
+          max: 10,
+          title: {
+            display: true,
+            text: "Intensity",
+            font: { size: 12 },
+            color: "#9333ea"
+          },
+          grid: { drawOnChartArea: false },
+          offset: true
+        },
+        yUV: {
+          type: "linear",
+          position: "right",
+          min: 0,
+          max: 12,
+          title: {
+            display: true,
+            text: "UV Index",
+            font: { size: 12 },
+            color: "#14b8a6"
+          },
+          grid: { drawOnChartArea: false },
+          offset: true
         }
       }
     }
@@ -413,8 +467,11 @@ function fmtVariance(val) {
                 <th colspan="2" class="th-group th-min-temp">Min Temp (°C)</th>
                 <th colspan="2" class="th-group th-rain">Rain Chance (%)</th>
                 <th colspan="2" class="th-group th-intensity">Intensity</th>
+                <th colspan="2" class="th-group th-uv">UV Index</th>
               </tr>
               <tr>
+                <th class="th-metric">MAE</th>
+                <th class="th-metric">Variance</th>
                 <th class="th-metric">MAE</th>
                 <th class="th-metric">Variance</th>
                 <th class="th-metric">MAE</th>
@@ -442,9 +499,11 @@ function fmtVariance(val) {
                   <td>{{ fmtVariance(row.rainChanceVariance) }}</td>
                   <td>{{ fmtMAE(row.intensityMAE) }}</td>
                   <td>{{ fmtVariance(row.intensityVariance) }}</td>
+                  <td>{{ fmtMAE(row.uvIndexMAE) }}</td>
+                  <td>{{ fmtVariance(row.uvIndexVariance) }}</td>
                 </template>
                 <template v-else>
-                  <td colspan="8" class="td-no-data">No data</td>
+                  <td colspan="12" class="td-no-data">No data</td>
                 </template>
               </tr>
             </tbody>
