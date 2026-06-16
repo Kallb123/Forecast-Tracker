@@ -29,6 +29,37 @@ const WEATHER_CODE_MAP = {
   99: "thunderstorm_hail_heavy"
 };
 
+const INTENSITY_MAP = {
+  0: 1,
+  1: 2,
+  2: 2,
+  3: 3,
+  45: 3,
+  48: 4,
+  51: 4,
+  53: 5,
+  55: 6,
+  56: 6,
+  57: 7,
+  61: 4,
+  63: 5,
+  65: 6,
+  66: 6,
+  67: 7,
+  71: 5,
+  73: 7,
+  75: 10,
+  77: 5,
+  80: 5,
+  81: 6,
+  82: 8,
+  85: 6,
+  86: 10,
+  95: 9,
+  96: 10,
+  99: 10
+};
+
 class OpenMeteoSource {
   constructor({ fetchImpl = fetch } = {}) {
     this.fetchImpl = fetchImpl;
@@ -37,6 +68,10 @@ class OpenMeteoSource {
 
   getDescription(weatherCode) {
     return WEATHER_CODE_MAP[weatherCode] ?? "unknown";
+  }
+
+  getIntensity(weatherCode) {
+    return INTENSITY_MAP[weatherCode] ?? 5;
   }
 
   async fetchDailyForecast({ latitude, longitude, forecastDays }) {
@@ -69,7 +104,8 @@ class OpenMeteoSource {
         maxTempC: daily.temperature_2m_max[idx],
         rainChancePct: daily.precipitation_probability_max[idx] ?? 0,
         weatherCode,
-        description: this.getDescription(weatherCode)
+        description: this.getDescription(weatherCode),
+        intensity: this.getIntensity(weatherCode)
       };
     });
   }

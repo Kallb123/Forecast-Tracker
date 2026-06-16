@@ -18,6 +18,7 @@ test("toLineProtocol creates extensible snapshot-friendly InfluxDB point", () =>
       maxTempC: 18.9,
       rainChancePct: 43,
       weatherCode: 3,
+      intensity: 3,
       description: "overcast"
     }
   });
@@ -28,5 +29,6 @@ test("toLineProtocol creates extensible snapshot-friendly InfluxDB point", () =>
   assert.match(line, /forecast_date=2026-05-29/);
   assert.match(line, /issue_date=2026-05-22/);
   assert.match(line, /horizon_days=7i/);
+  assert.match(line, /intensity=3/);
   assert.match(line, /description="overcast"/);
 });
