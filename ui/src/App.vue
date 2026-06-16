@@ -393,6 +393,10 @@ function fmtVariance(val) {
           <strong>{{ selectedLocation }}</strong>. Horizon&nbsp;0 is the forecast issued on
           the target date itself and is used as the reference point.
         </p>
+        <p class="accuracy-note">
+          Intensity is a custom 1–10 weather impact score derived from the forecast
+          weather code, where 1 is clear/full sun and 10 is severe heavy snow or thunderstorms.
+        </p>
 
         <div v-if="accuracyLoading" class="accuracy-loading">
           <div class="spinner" role="status" aria-label="Loading accuracy data"></div>
@@ -754,6 +758,10 @@ body {
 
 .th-rain {
   color: #0284c7;
+}
+
+.th-intensity {
+  color: #9333ea;
 }
 
 .th-metric {
