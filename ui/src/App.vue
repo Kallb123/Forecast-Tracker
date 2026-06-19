@@ -83,7 +83,7 @@ async function loadForecastHistory() {
     );
     historyData.value = data;
     await nextTick();
-    renderChart(data);
+    renderChart(historyData.value);
   } catch (e) {
     error.value = `Could not load forecast history: ${e.message}`;
   } finally {
