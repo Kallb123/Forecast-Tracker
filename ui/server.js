@@ -85,6 +85,10 @@ function parseInfluxCSV(csvText) {
       continue;
     }
 
+    while (cols.length < headers.length) {
+      cols.push("");
+    }
+
     const row = {};
     headers.forEach((h, i) => {
       row[h] = (cols[i] ?? "").trim();
@@ -93,6 +97,11 @@ function parseInfluxCSV(csvText) {
   }
 
   return rows;
+}
+
+function parseNullableNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -224,12 +233,14 @@ from(bucket: "${bucket}")
       .map((r) => ({
         time: r._time,
         issueDate: r.issue_date || "",
-        maxTempC: parseFloat(r.max_temp_c),
-        minTempC: parseFloat(r.min_temp_c),
-        rainChancePct: parseFloat(r.rain_chance_pct),
-        intensity: parseFloat(r.intensity),
-        uvIndex: parseFloat(r.uv_index),
-        horizonDays: parseInt(r.horizon_days, 10)
+        maxTempC: parseNullableNumber(r.max_temp_c),
+        minTempC: parseNullableNumber(r.min_temp_c),
+        rainChancePct: parseNullableNumber(r.rain_chance_pct),
+        intensity: parseNullableNumber(r.intensity),
+        uvIndex: parseNullableNumber(r.uv_index),
+        horizonDays: Number.isFinite(parseNullableNumber(r.horizon_days))
+          ? parseInt(r.horizon_days, 10)
+          : null
       }));
 
     res.json({ date, location, data });
@@ -271,15 +282,15 @@ from(bucket: "${bucket}")
     const byDate = {};
     for (const r of rows) {
       if (!r.forecast_date || r.max_temp_c === "" || r.horizon_days === "") continue;
-      const h = parseInt(r.horizon_days, 10);
+      const h = Number.isFinite(parseNullableNumber(r.horizon_days)) ? parseInt(r.horizon_days, 10) : null;
       if (!Number.isFinite(h)) continue;
       if (!byDate[r.forecast_date]) byDate[r.forecast_date] = {};
       byDate[r.forecast_date][h] = {
-        maxTempC: parseFloat(r.max_temp_c),
-        minTempC: parseFloat(r.min_temp_c),
-        rainChancePct: parseFloat(r.rain_chance_pct),
-        intensity: parseFloat(r.intensity),
-        uvIndex: parseFloat(r.uv_index)
+        maxTempC: parseNullableNumber(r.max_temp_c),
+        minTempC: parseNullableNumber(r.min_temp_c),
+        rainChancePct: parseNullableNumber(r.rain_chance_pct),
+        intensity: parseNullableNumber(r.intensity),
+        uvIndex: parseNullableNumber(r.uv_index)
       };
     }
 
