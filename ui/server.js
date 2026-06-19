@@ -73,25 +73,23 @@ function parseInfluxCSV(csvText) {
     if (!line || line.startsWith("#")) continue;
 
     const cols = splitCSVLine(line);
+    const isHeaderRow = cols[0] === "result" && cols[1] === "table";
+
+    if (isHeaderRow) {
+      headers = cols.map((h) => h.trim());
+      continue;
+    }
 
     if (!headers) {
       headers = cols.map((h) => h.trim());
       continue;
     }
 
-    // A blank first column starts a new table section — reset headers
-    if (cols[0] === "" && cols.length > 1 && headers[0] !== "") {
-      headers = null;
-      continue;
-    }
-
-    if (headers) {
-      const row = {};
-      headers.forEach((h, i) => {
-        row[h] = (cols[i] ?? "").trim();
-      });
-      rows.push(row);
-    }
+    const row = {};
+    headers.forEach((h, i) => {
+      row[h] = (cols[i] ?? "").trim();
+    });
+    rows.push(row);
   }
 
   return rows;
