@@ -73,7 +73,8 @@ function parseInfluxCSV(csvText) {
     if (!line || line.startsWith("#")) continue;
 
     const cols = splitCSVLine(line);
-    const isHeaderRow = cols[0] === "result" && cols[1] === "table";
+    // There seems to be a leading comma sometimes, so we check for both possible header row formats
+    const isHeaderRow = cols[0] === "result" && cols[1] === "table" || cols[1] === "result" && cols[2] === "table";
 
     if (isHeaderRow) {
       headers = cols.map((h) => h.trim());
@@ -81,6 +82,7 @@ function parseInfluxCSV(csvText) {
     }
 
     if (!headers) {
+      // If we haven't seen a header row yet, but this isn't a comment, lets assume it is a header
       headers = cols.map((h) => h.trim());
       continue;
     }
