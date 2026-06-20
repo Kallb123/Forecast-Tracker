@@ -20,9 +20,13 @@ const accuracyData = ref([]);
 const loading = ref(false);
 const accuracyLoading = ref(false);
 const error = ref("");
-const chartRef = ref(null);
+const tempChartRef = ref(null);
+const intensityChartRef = ref(null);
+const uvChartRef = ref(null); 
 
-let chartInstance = null;
+let tempChartInstance = null;
+let intensityChartInstance = null; 
+let uvChartInstance = null;
 
 // ---------------------------------------------------------------------------
 // API helpers
@@ -76,14 +80,14 @@ async function loadForecastHistory() {
   loading.value = true;
   error.value = "";
   historyData.value = [];
-  destroyChart();
+  destroyCharts();
   try {
     const { data } = await apiFetch(
       `/api/forecast-history?date=${selectedDate.value}&location=${encodeURIComponent(selectedLocation.value)}`
     );
     historyData.value = data;
     await nextTick();
-    renderChart(historyData.value);
+    renderCharts(historyData.value);
   } catch (e) {
     error.value = `Could not load forecast history: ${e.message}`;
   } finally {
@@ -111,10 +115,18 @@ async function loadAccuracyByHorizon() {
 // ---------------------------------------------------------------------------
 // Chart
 // ---------------------------------------------------------------------------
-function destroyChart() {
-  if (chartInstance) {
-    chartInstance.destroy();
-    chartInstance = null;
+function destroyCharts() {
+  if (tempChartInstance) {
+    tempChartInstance.destroy();
+    tempChartInstance = null;
+  }
+  if (intensityChartInstance) {
+    intensityChartInstance.destroy();
+    intensityChartInstance = null;
+  }
+  if (uvChartInstance) {
+    uvChartInstance.destroy();
+    uvChartInstance = null;
   }
 }
 
@@ -129,12 +141,12 @@ function formatLabel(isoTime) {
   });
 }
 
-function renderChart(data) {
-  if (!chartRef.value || !data.length) return;
+function renderCharts(data) {
+  if (!tempChartRef.value || !data.length) return;
 
   const labels = data.map((d) => formatLabel(d.time));
 
-  chartInstance = new Chart(chartRef.value, {
+  tempChartInstance = new Chart(tempChartRef.value, {
     type: "line",
     data: {
       labels,
@@ -175,32 +187,6 @@ function renderChart(data) {
           fill: true,
           borderDash: [6, 4],
           yAxisID: "yRain"
-        },
-        {
-          label: "Intensity (1-10)",
-          data: data.map((d) => d.intensity),
-          borderColor: "#9333ea",
-          backgroundColor: "rgba(147,51,234,0.12)",
-          borderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
-          tension: 0.35,
-          fill: false,
-          borderDash: [3, 3],
-          yAxisID: "yIntensity"
-        },
-        {
-          label: "UV Index",
-          data: data.map((d) => d.uvIndex),
-          borderColor: "#14b8a6",
-          backgroundColor: "rgba(20,184,166,0.12)",
-          borderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
-          tension: 0.35,
-          fill: false,
-          borderDash: [4, 4],
-          yAxisID: "yUV"
         }
       ]
     },
@@ -268,10 +254,74 @@ function renderChart(data) {
             color: "#0ea5e9"
           },
           grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+  intensityChartInstance = new Chart(intensityChartRef.value, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Intensity (1-10)",
+          data: data.map((d) => d.intensity),
+          borderColor: "#9333ea",
+          backgroundColor: "rgba(147,51,234,0.12)",
+          borderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          tension: 0.35,
+          fill: false,
+          borderDash: [3, 3],
+          yAxisID: "yIntensity"
+        } 
+      ] 
+    }, 
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { padding: 20, usePointStyle: true, font: { size: 13 } }
+        },
+        title: {
+          display: true,
+          text: `Forecast evolution for ${selectedDate.value}`,
+          font: { size: 15, weight: "bold" },
+          padding: { top: 10, bottom: 20 }
+        },
+        tooltip: {
+          backgroundColor: "rgba(15,23,42,0.92)",
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            afterTitle(items) {
+              const d = data[items[0].dataIndex];
+              const label =
+                d.horizonDays === 0
+                  ? "Same day"
+                  : `${d.horizonDays} day${d.horizonDays === 1 ? "" : "s"} before`;
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "When forecast was issued",
+            font: { size: 12 }
+          },
+          ticks: { maxRotation: 45, font: { size: 11 } },
+          grid: { color: "rgba(0,0,0,0.06)" }
         },
         yIntensity: {
           type: "linear",
-          position: "right",
+          position: "left",
           min: 0,
           max: 10,
           title: {
@@ -282,10 +332,74 @@ function renderChart(data) {
           },
           grid: { drawOnChartArea: false },
           offset: true
+        }
+      }
+    }
+  });
+  uvChartInstance = new Chart(uvChartRef.value, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "UV Index",
+          data: data.map((d) => d.uvIndex),
+          borderColor: "#14b8a6",
+          backgroundColor: "rgba(20,184,166,0.12)",
+          borderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 7,
+          tension: 0.35,
+          fill: false,
+          borderDash: [4, 4],
+          yAxisID: "yUV"
+        }
+      ]
+    }, 
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { padding: 20, usePointStyle: true, font: { size: 13 } }
+        },
+        title: {
+          display: true,
+          text: `Forecast evolution for ${selectedDate.value}`,
+          font: { size: 15, weight: "bold" },
+          padding: { top: 10, bottom: 20 }
+        },
+        tooltip: {
+          backgroundColor: "rgba(15,23,42,0.92)",
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            afterTitle(items) {
+              const d = data[items[0].dataIndex];
+              const label =
+                d.horizonDays === 0
+                  ? "Same day"
+                  : `${d.horizonDays} day${d.horizonDays === 1 ? "" : "s"} before`;
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "When forecast was issued",
+            font: { size: 12 }
+          },
+          ticks: { maxRotation: 45, font: { size: 11 } },
+          grid: { color: "rgba(0,0,0,0.06)" }
         },
         yUV: {
           type: "linear",
-          position: "right",
+          position: "left",
           min: 0,
           max: 12,
           title: {
@@ -391,10 +505,60 @@ function fmtVariance(val) {
         </div>
 
         <div class="chart-wrap">
-          <canvas ref="chartRef" aria-label="Forecast evolution chart"></canvas>
+          <canvas ref="tempChartRef" aria-label="Forecast evolution chart"></canvas>
         </div>
       </section>
 
+      <!-- Chart card -->
+      <section class="card chart-card" aria-label="Forecast history chart">
+        <!-- Loading overlay -->
+        <div v-if="loading" class="state-overlay">
+          <div class="spinner" role="status" aria-label="Loading"></div>
+          <p>Loading forecast data…</p>
+        </div>
+
+        <!-- Empty state -->
+        <div v-else-if="!historyData.length" class="state-overlay">
+          <span class="empty-icon" aria-hidden="true">📭</span>
+          <p>
+            {{
+              selectedDate
+                ? "No forecast history found for this date."
+                : "Select a date above to view its forecast history."
+            }}
+          </p>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas ref="intensityChartRef" aria-label="Forecast evolution chart"></canvas>
+        </div>
+      </section>
+
+      <!-- Chart card -->
+      <section class="card chart-card" aria-label="Forecast history chart">
+        <!-- Loading overlay -->
+        <div v-if="loading" class="state-overlay">
+          <div class="spinner" role="status" aria-label="Loading"></div>
+          <p>Loading forecast data…</p>
+        </div>
+
+        <!-- Empty state -->
+        <div v-else-if="!historyData.length" class="state-overlay">
+          <span class="empty-icon" aria-hidden="true">📭</span>
+          <p>
+            {{
+              selectedDate
+                ? "No forecast history found for this date."
+                : "Select a date above to view its forecast history."
+            }}
+          </p>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas ref="uvChartRef" aria-label="Forecast evolution chart"></canvas>
+        </div>
+      </section>
+      
       <!-- Summary strip -->
       <section v-if="historyData.length" class="card summary-card" aria-label="Summary">
         <h2 class="summary-heading">📊 Summary</h2>
