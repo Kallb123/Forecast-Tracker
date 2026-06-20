@@ -330,7 +330,21 @@ function renderCharts(data) {
             color: "#9333ea"
           },
           grid: { color: "rgba(0,0,0,0.06)" },
-          offset: true
+          offset: true, 
+          ticks: {
+            autoSkip: false,
+            callback: function(value, index, values) {
+              // Inject emojis based on the value
+              const emojiMap = {
+                1: '☀️',
+                3: '⛅',
+                7: '🌧️',
+                10: '⛈️' 
+              };
+            
+              return emojiMap[value] || "";
+            }
+          } 
         }
       }
     }
