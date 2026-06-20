@@ -274,7 +274,7 @@ function renderCharts(data) {
           tension: 0.35,
           fill: false,
           borderDash: [3, 3],
-          yAxisID: "yIntensity"
+          yAxisID: "y"
         } 
       ] 
     }, 
@@ -319,7 +319,7 @@ function renderCharts(data) {
           ticks: { maxRotation: 45, font: { size: 11 } },
           grid: { color: "rgba(0,0,0,0.06)" }
         },
-        yIntensity: {
+        y: {
           type: "linear",
           position: "left",
           min: 0,
@@ -336,6 +336,48 @@ function renderCharts(data) {
       }
     }
   });
+
+  const horizontalLinePlugin = {
+            id: 'horizontalLine',
+            afterDraw: (chart) => {
+                const moderateValue = chart.scales.y.getPixelForValue(3);
+                const highValue = chart.scales.y.getPixelForValue(6);
+                const veryHighValue = chart.scales.y.getPixelForValue(8);
+                const extremeValue = chart.scales.y.getPixelForValue(11);
+                const ctx = chart.ctx;
+                ctx.save();
+                // Moderate
+                ctx.beginPath();
+                ctx.moveTo(chart.chartArea.left, moderateValue);
+                ctx.lineTo(chart.chartArea.right, moderateValue);
+                ctx.strokeStyle = 'yellow';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // High
+                ctx.beginPath();
+                ctx.moveTo(chart.chartArea.left, highValue);
+                ctx.lineTo(chart.chartArea.right, highValue);
+                ctx.strokeStyle = 'orange';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Very high
+                ctx.beginPath();
+                ctx.moveTo(chart.chartArea.left, veryHighValue);
+                ctx.lineTo(chart.chartArea.right, veryHighValue);
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Extreme
+                ctx.beginPath();
+                ctx.moveTo(chart.chartArea.left, extremeValue);
+                ctx.lineTo(chart.chartArea.right, extremeValue);
+                ctx.strokeStyle = 'purple';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
+        };
+
   uvChartInstance = new Chart(uvChartRef.value, {
     type: "line",
     data: {
@@ -352,10 +394,11 @@ function renderCharts(data) {
           tension: 0.35,
           fill: false,
           borderDash: [4, 4],
-          yAxisID: "yUV"
+          yAxisID: "y"
         }
       ]
     }, 
+    plugins: [horizontalLinePlugin], 
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -397,7 +440,7 @@ function renderCharts(data) {
           ticks: { maxRotation: 45, font: { size: 11 } },
           grid: { color: "rgba(0,0,0,0.06)" }
         },
-        yUV: {
+        y: {
           type: "linear",
           position: "left",
           min: 0,
