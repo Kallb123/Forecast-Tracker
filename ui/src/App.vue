@@ -321,7 +321,7 @@ function renderCharts(data) {
         },
         yIntensity: {
           type: "linear",
-          position: "right",
+          position: "left",
           min: 0,
           max: 10,
           title: {
@@ -399,7 +399,7 @@ function renderCharts(data) {
         },
         yUV: {
           type: "linear",
-          position: "right",
+          position: "left",
           min: 0,
           max: 12,
           title: {
@@ -493,7 +493,7 @@ function fmtVariance(val) {
         </div>
 
         <!-- Empty state -->
-        <div v-else-if="!tempData.length" class="state-overlay">
+        <div v-else-if="!historyData.length" class="state-overlay">
           <span class="empty-icon" aria-hidden="true">📭</span>
           <p>
             {{
@@ -518,7 +518,7 @@ function fmtVariance(val) {
         </div>
 
         <!-- Empty state -->
-        <div v-else-if="!intensityData.length" class="state-overlay">
+        <div v-else-if="!historyData.length" class="state-overlay">
           <span class="empty-icon" aria-hidden="true">📭</span>
           <p>
             {{
@@ -543,7 +543,7 @@ function fmtVariance(val) {
         </div>
 
         <!-- Empty state -->
-        <div v-else-if="!uvData.length" class="state-overlay">
+        <div v-else-if="!historyData.length" class="state-overlay">
           <span class="empty-icon" aria-hidden="true">📭</span>
           <p>
             {{
