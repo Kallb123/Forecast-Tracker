@@ -156,9 +156,9 @@ function renderCharts(data) {
           data: data.map((d) => d.maxTempC),
           borderColor: "#f97316",
           backgroundColor: "rgba(249,115,22,0.08)",
-          borderWidth: 2.5,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: false,
           yAxisID: "yTemp"
@@ -168,9 +168,9 @@ function renderCharts(data) {
           data: data.map((d) => d.minTempC),
           borderColor: "#6366f1",
           backgroundColor: "rgba(99,102,241,0.08)",
-          borderWidth: 2.5,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: false,
           yAxisID: "yTemp"
@@ -181,8 +181,8 @@ function renderCharts(data) {
           borderColor: "#0ea5e9",
           backgroundColor: "rgba(14,165,233,0.12)",
           borderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: true,
           borderDash: [6, 4],
@@ -269,11 +269,10 @@ function renderCharts(data) {
           borderColor: "#9333ea",
           backgroundColor: "rgba(147,51,234,0.12)",
           borderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: false,
-          borderDash: [3, 3],
           yAxisID: "y"
         } 
       ] 
@@ -389,11 +388,10 @@ function renderCharts(data) {
           borderColor: "#14b8a6",
           backgroundColor: "rgba(20,184,166,0.12)",
           borderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: false,
-          borderDash: [4, 4],
           yAxisID: "y"
         }
       ]
