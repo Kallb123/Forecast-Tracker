@@ -659,6 +659,14 @@ function fmtVariance(val) {
             <div class="summary-value">{{ getLastHistoryItem()?.rainChancePct ?? "—" }}%</div>
             <div class="summary-label">Latest rain chance</div>
           </div>
+          <div class="summary-item">
+            <div class="summary-value">{{ getLastHistoryItem()?.intensity ?? "—" }} / 10</div>
+            <div class="summary-label">Latest intensity</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-value">{{ getLastHistoryItem()?.uvIndex?? "—" }}</div>
+            <div class="summary-label">Latest UV index</div>
+          </div>
         </div>
       </section>
 
