@@ -57,7 +57,7 @@ async function loadForecastDates() {
   forecastDates.value = [];
   selectedDate.value = "";
   error.value = "";
-  destroyChart();
+  destroyCharts();
   historyData.value = [];
   accuracyData.value = [];
   try {
@@ -422,7 +422,7 @@ function renderCharts(data) {
 watch(selectedLocation, loadForecastDates);
 watch(selectedDate, loadForecastHistory);
 onMounted(loadLocations);
-onUnmounted(destroyChart);
+onUnmounted(destroyCharts);
 
 // ---------------------------------------------------------------------------
 // Helpers for summary strip
