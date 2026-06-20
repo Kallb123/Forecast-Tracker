@@ -156,9 +156,9 @@ function renderCharts(data) {
           data: data.map((d) => d.maxTempC),
           borderColor: "#f97316",
           backgroundColor: "rgba(249,115,22,0.08)",
-          borderWidth: 2.5,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: false,
           yAxisID: "yTemp"
@@ -168,9 +168,9 @@ function renderCharts(data) {
           data: data.map((d) => d.minTempC),
           borderColor: "#6366f1",
           backgroundColor: "rgba(99,102,241,0.08)",
-          borderWidth: 2.5,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: false,
           yAxisID: "yTemp"
@@ -181,8 +181,8 @@ function renderCharts(data) {
           borderColor: "#0ea5e9",
           backgroundColor: "rgba(14,165,233,0.12)",
           borderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: true,
           borderDash: [6, 4],
@@ -269,12 +269,11 @@ function renderCharts(data) {
           borderColor: "#9333ea",
           backgroundColor: "rgba(147,51,234,0.12)",
           borderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: false,
-          borderDash: [3, 3],
-          yAxisID: "yIntensity"
+          yAxisID: "y"
         } 
       ] 
     }, 
@@ -319,7 +318,7 @@ function renderCharts(data) {
           ticks: { maxRotation: 45, font: { size: 11 } },
           grid: { color: "rgba(0,0,0,0.06)" }
         },
-        yIntensity: {
+        y: {
           type: "linear",
           position: "left",
           min: 0,
@@ -330,12 +329,54 @@ function renderCharts(data) {
             font: { size: 12 },
             color: "#9333ea"
           },
-          grid: { drawOnChartArea: false },
+          grid: { color: "rgba(0,0,0,0.06)" },
           offset: true
         }
       }
     }
   });
+
+  const horizontalLinePlugin = {
+            id: 'horizontalLine',
+            afterDraw: (chart) => {
+                const moderateValue = chart.scales.y.getPixelForValue(3);
+                const highValue = chart.scales.y.getPixelForValue(6);
+                const veryHighValue = chart.scales.y.getPixelForValue(8);
+                const extremeValue = chart.scales.y.getPixelForValue(11);
+                const ctx = chart.ctx;
+                ctx.save();
+                // Moderate
+                ctx.beginPath();
+                ctx.moveTo(chart.chartArea.left, moderateValue);
+                ctx.lineTo(chart.chartArea.right, moderateValue);
+                ctx.strokeStyle = 'yellow';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // High
+                ctx.beginPath();
+                ctx.moveTo(chart.chartArea.left, highValue);
+                ctx.lineTo(chart.chartArea.right, highValue);
+                ctx.strokeStyle = 'orange';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Very high
+                ctx.beginPath();
+                ctx.moveTo(chart.chartArea.left, veryHighValue);
+                ctx.lineTo(chart.chartArea.right, veryHighValue);
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Extreme
+                ctx.beginPath();
+                ctx.moveTo(chart.chartArea.left, extremeValue);
+                ctx.lineTo(chart.chartArea.right, extremeValue);
+                ctx.strokeStyle = 'purple';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
+        };
+
   uvChartInstance = new Chart(uvChartRef.value, {
     type: "line",
     data: {
@@ -347,15 +388,15 @@ function renderCharts(data) {
           borderColor: "#14b8a6",
           backgroundColor: "rgba(20,184,166,0.12)",
           borderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 7,
+          pointRadius: 3,
+          pointHoverRadius: 5,
           tension: 0.35,
           fill: false,
-          borderDash: [4, 4],
-          yAxisID: "yUV"
+          yAxisID: "y"
         }
       ]
     }, 
+    plugins: [horizontalLinePlugin], 
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -397,7 +438,7 @@ function renderCharts(data) {
           ticks: { maxRotation: 45, font: { size: 11 } },
           grid: { color: "rgba(0,0,0,0.06)" }
         },
-        yUV: {
+        y: {
           type: "linear",
           position: "left",
           min: 0,
@@ -408,7 +449,7 @@ function renderCharts(data) {
             font: { size: 12 },
             color: "#14b8a6"
           },
-          grid: { drawOnChartArea: false },
+          grid: { color: "rgba(0,0,0,0.06)" },
           offset: true
         }
       }
@@ -758,10 +799,10 @@ body {
 .container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   flex: 1;
 }
 
@@ -770,7 +811,7 @@ body {
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 /* ── Controls ──────────────────────────────────────────────── */
@@ -835,12 +876,12 @@ body {
 /* ── Chart card ────────────────────────────────────────────── */
 .chart-card {
   position: relative;
-  min-height: 460px;
-  padding: 1.25rem;
+  min-height: 660px;
+  padding: 1rem;
 }
 
 .chart-wrap {
-  height: 420px;
+  height: 620px;
   position: relative;
 }
 
