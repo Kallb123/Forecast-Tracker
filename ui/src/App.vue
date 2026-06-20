@@ -333,13 +333,22 @@ function renderCharts(data) {
           offset: true, 
           ticks: {
             autoSkip: false,
+            stepSize: 1,
+            min: 1,
+            max: 10,
             callback: function(value, index, values) {
               // Inject emojis based on the value
               const emojiMap = {
-                1: '☀️',
-                3: '⛅',
-                7: '🌧️',
-                10: '⛈️' 
+                1: '☀️', // clear
+                2: '🌤️', //partly cloudy 
+                3: '⛅', // overcast/fog
+                4: '', // fog/drizle
+                5: '🌦️', // light rain/snow
+                6: '', // 
+                7: '🌧️', //moderate rain/snow
+                8: '🌨️', //
+                9: '', // 
+                10: '⛈️' // heavy snow/thunder
               };
             
               return emojiMap[value] || "";
