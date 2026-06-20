@@ -330,7 +330,7 @@ function renderCharts(data) {
             font: { size: 12 },
             color: "#9333ea"
           },
-          grid: { drawOnChartArea: false },
+          grid: { color: "rgba(0,0,0,0.06)" },
           offset: true
         }
       }
@@ -408,7 +408,7 @@ function renderCharts(data) {
             font: { size: 12 },
             color: "#14b8a6"
           },
-          grid: { drawOnChartArea: false },
+          grid: { color: "rgba(0,0,0,0.06)" },
           offset: true
         }
       }
