@@ -758,10 +758,10 @@ body {
 .container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   flex: 1;
 }
 
@@ -770,7 +770,7 @@ body {
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 /* ── Controls ──────────────────────────────────────────────── */
@@ -835,12 +835,12 @@ body {
 /* ── Chart card ────────────────────────────────────────────── */
 .chart-card {
   position: relative;
-  min-height: 460px;
-  padding: 1.25rem;
+  min-height: 660px;
+  padding: 1rem;
 }
 
 .chart-wrap {
-  height: 420px;
+  height: 620px;
   position: relative;
 }
 
