@@ -299,7 +299,16 @@ from(bucket: "${bucket}")
     // Accumulate absolute errors per horizon vs the horizon-0 same-day reference forecast
     const acc = {};
     for (let h = 0; h <= 14; h++) {
-      acc[h] = { maxTemp: [], minTemp: [], rainChance: [], intensity: [], uvIndex: [] };
+      acc[h] = { count: 0, maxTemp: [], minTemp: [], rainChance: [], intensity: [], uvIndex: [] };
+    }
+
+    // Only compare a field when both the horizon forecast and the reference
+    // value are present — a null on either side would otherwise coerce to 0
+    // and silently skew the statistics.
+    function pushAbsError(arr, forecast, reference) {
+      if (Number.isFinite(forecast) && Number.isFinite(reference)) {
+        arr.push(Math.abs(forecast - reference));
+      }
     }
 
     for (const horizons of Object.values(byDate)) {
@@ -308,11 +317,12 @@ from(bucket: "${bucket}")
       for (let h = 0; h <= 14; h++) {
         const f = horizons[h];
         if (!f) continue;
-        acc[h].maxTemp.push(Math.abs(f.maxTempC - actual.maxTempC));
-        acc[h].minTemp.push(Math.abs(f.minTempC - actual.minTempC));
-        acc[h].rainChance.push(Math.abs(f.rainChancePct - actual.rainChancePct));
-        acc[h].intensity.push(Math.abs(f.intensity - actual.intensity));
-        acc[h].uvIndex.push(Math.abs(f.uvIndex - actual.uvIndex));
+        acc[h].count += 1;
+        pushAbsError(acc[h].maxTemp, f.maxTempC, actual.maxTempC);
+        pushAbsError(acc[h].minTemp, f.minTempC, actual.minTempC);
+        pushAbsError(acc[h].rainChance, f.rainChancePct, actual.rainChancePct);
+        pushAbsError(acc[h].intensity, f.intensity, actual.intensity);
+        pushAbsError(acc[h].uvIndex, f.uvIndex, actual.uvIndex);
       }
     }
 
@@ -332,7 +342,7 @@ from(bucket: "${bucket}")
       const a = acc[h];
       accuracy.push({
         horizon: h,
-        count: a.maxTemp.length,
+        count: a.count,
         maxTempMAE: mae(a.maxTemp),
         maxTempVariance: variance(a.maxTemp),
         minTempMAE: mae(a.minTemp),
