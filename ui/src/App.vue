@@ -678,10 +678,19 @@ function fmtVariance(val) {
       >
         <h2 class="summary-heading">🎯 Forecast Accuracy by Horizon Day</h2>
         <p class="accuracy-desc">
-          Mean Absolute Error (MAE) and variance of each metric compared to the horizon&#8209;0
-          same-day reference forecast, aggregated across all forecast dates for
+          How each forecast metric compares to the horizon&#8209;0 same-day reference forecast,
+          aggregated across all forecast dates for
           <strong>{{ selectedLocation }}</strong>. Horizon&nbsp;0 is the forecast issued on
           the target date itself and is used as the reference point.
+        </p>
+        <p class="accuracy-desc">
+          <strong>MAE</strong> (Mean Absolute Error) is the average size of the forecast error,
+          in the same units as the metric itself. <strong>Variance</strong> measures how much
+          those absolute errors vary from date to date, and is expressed in
+          <em>squared</em> units (°C² for temperature, squared percentage points for rain
+          chance) — it is not a percentage, so it can legitimately exceed the metric's own
+          range. For example, a rain-chance variance of 500 means the error typically spreads
+          about ±22&nbsp;percentage points (√500) around its average.
         </p>
         <p class="accuracy-note">
           Intensity is a custom 1–10 weather impact score derived from the forecast
@@ -739,7 +748,7 @@ function fmtVariance(val) {
                   <td>{{ fmtVariance(row.uvIndexVariance) }}</td>
                 </template>
                 <template v-else>
-                  <td colspan="12" class="td-no-data">No data</td>
+                  <td colspan="10" class="td-no-data">No data</td>
                 </template>
               </tr>
             </tbody>
