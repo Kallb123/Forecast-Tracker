@@ -173,6 +173,7 @@ Routes (all under `/api`, rate-limited to 120 req/min/IP via `express-rate-limit
 | `GET /api/locations`       | —                   | Distinct `location` tag values                                |
 | `GET /api/forecast-dates`  | `location`          | Distinct `forecast_date` values for a location                |
 | `GET /api/forecast-history`| `date`, `location`  | Every snapshot for one `forecast_date`, sorted by time        |
+| `GET /api/latest-outlook`  | `location`          | Newest snapshot per upcoming day, next 14 days                |
 | `GET /api/accuracy-by-horizon` | `location`      | MAE + variance per horizon (0–14) vs the horizon-0 reference  |
 | `GET /api/health`          | —                   | `{ status, version }`                                         |
 
@@ -180,6 +181,11 @@ Because user-supplied strings are interpolated into Flux query text, inputs are 
 use: `location` must match `RE_SAFE` (`[a-zA-Z0-9 _-.]`, ≤128 chars) and `date` must match
 `YYYY-MM-DD` and be a real calendar date. **Any new route that accepts query parameters must apply
 the same validation pattern** — this is the injection boundary of the app.
+
+`/api/latest-outlook` answers "what does the forecast look like right now": it pivots the last
+seven days of snapshots, drops forecast dates already in the past, keeps the newest snapshot for
+each remaining date, and returns the first 14. It is the only route that reads `weather_code` and
+`description` — the UI maps the WMO code to an emoji for the look-ahead cards.
 
 The accuracy computation lives server-side in `/api/accuracy-by-horizon`: it pivots all snapshots,
 groups them by `forecast_date`, takes the horizon-0 snapshot as "actual", and accumulates absolute
@@ -200,7 +206,9 @@ Chart.js rendering, template, and CSS. Data flow:
    snapshot timeline (x-axis = when each forecast was issued):
    temperature + rain chance (dual y-axis), intensity (1–10 with emoji ticks), and UV index (with
    a custom plugin drawing WHO-style UV threshold lines).
-3. Below the charts: a summary strip (latest snapshot values) and the accuracy-by-horizon table.
+3. Below the charts: a summary strip (latest snapshot values), a 14-day look-ahead of the newest
+   forecast for each upcoming day (`/api/latest-outlook` — weather emoji, max/min temps, rain
+   chance), and the accuracy-by-horizon table.
 
 Chart instances are created/destroyed imperatively around each data load. The app version is baked
 in at build time via the Vite `__APP_VERSION__` define from `package.json`.

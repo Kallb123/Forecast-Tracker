@@ -17,8 +17,11 @@ const forecastDates = ref([]);
 const selectedDate = ref("");
 const historyData = ref([]);
 const accuracyData = ref([]);
+const outlookDays = ref([]);
+const outlookIssuedAt = ref("");
 const loading = ref(false);
 const accuracyLoading = ref(false);
+const outlookLoading = ref(false);
 const error = ref("");
 const tempChartRef = ref(null);
 const intensityChartRef = ref(null);
@@ -60,6 +63,7 @@ async function loadForecastDates() {
   destroyCharts();
   historyData.value = [];
   accuracyData.value = [];
+  outlookDays.value = [];
   try {
     const { dates } = await apiFetch(
       `/api/forecast-dates?location=${encodeURIComponent(selectedLocation.value)}`
@@ -73,6 +77,7 @@ async function loadForecastDates() {
     error.value = `Could not load forecast dates: ${e.message}`;
   }
   loadAccuracyByHorizon();
+  loadLatestOutlook();
 }
 
 async function loadForecastHistory() {
@@ -109,6 +114,25 @@ async function loadAccuracyByHorizon() {
     console.warn("Could not load accuracy data:", e.message);
   } finally {
     accuracyLoading.value = false;
+  }
+}
+
+async function loadLatestOutlook() {
+  if (!selectedLocation.value) return;
+  outlookLoading.value = true;
+  outlookDays.value = [];
+  outlookIssuedAt.value = "";
+  try {
+    const { days, issuedAt } = await apiFetch(
+      `/api/latest-outlook?location=${encodeURIComponent(selectedLocation.value)}`
+    );
+    outlookDays.value = days;
+    outlookIssuedAt.value = issuedAt;
+  } catch (e) {
+    // Non-critical — don't overwrite the main error
+    console.warn("Could not load latest outlook:", e.message);
+  } finally {
+    outlookLoading.value = false;
   }
 }
 
@@ -501,6 +525,79 @@ function fmtMAE(val) {
 function fmtVariance(val) {
   return val === null || val === undefined ? "—" : val.toFixed(1);
 }
+
+// ---------------------------------------------------------------------------
+// Helpers for the 14-day outlook
+// ---------------------------------------------------------------------------
+// WMO weather codes → emoji. Same code vocabulary the collector maps to
+// `description` and `intensity` in tracker/src/sources/openMeteoSource.js.
+const WEATHER_ICONS = {
+  0: "☀️",
+  1: "🌤️",
+  2: "⛅",
+  3: "☁️",
+  45: "🌫️",
+  48: "🌫️",
+  51: "🌦️",
+  53: "🌦️",
+  55: "🌧️",
+  56: "🌧️",
+  57: "🌧️",
+  61: "🌦️",
+  63: "🌧️",
+  65: "🌧️",
+  66: "🌧️",
+  67: "🌧️",
+  71: "🌨️",
+  73: "🌨️",
+  75: "❄️",
+  77: "🌨️",
+  80: "🌦️",
+  81: "🌧️",
+  82: "⛈️",
+  85: "🌨️",
+  86: "❄️",
+  95: "⛈️",
+  96: "⛈️",
+  99: "⛈️"
+};
+
+function weatherIcon(code) {
+  return WEATHER_ICONS[code] ?? "❓";
+}
+
+function weatherLabel(description) {
+  if (!description) return "Unknown";
+  const words = description.replaceAll("_", " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+function outlookDayName(isoDate) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (isoDate === today) return "Today";
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  if (isoDate === tomorrow) return "Tomorrow";
+  return new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-GB", {
+    weekday: "short",
+    timeZone: "UTC"
+  });
+}
+
+function outlookDayDate(isoDate) {
+  return new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC"
+  });
+}
+
+function fmtTemp(val) {
+  return val === null || val === undefined ? "—" : `${Math.round(val)}°`;
+}
+
+function fmtRain(val) {
+  return val === null || val === undefined ? "—" : `${Math.round(val)}%`;
+}
 </script>
 
 <template>
@@ -666,6 +763,43 @@ function fmtVariance(val) {
           <div class="summary-item">
             <div class="summary-value">{{ getLastHistoryItem()?.uvIndex?? "—" }}</div>
             <div class="summary-label">Latest UV index</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 14-day outlook -->
+      <section
+        v-if="outlookLoading || outlookDays.length"
+        class="card outlook-card"
+        aria-label="Latest 14 day forecast look ahead"
+      >
+        <h2 class="summary-heading">🔭 Next 14 Days</h2>
+        <p class="outlook-desc">
+          The most recent forecast held for each upcoming day at
+          <strong>{{ selectedLocation }}</strong
+          ><span v-if="outlookIssuedAt">, last updated {{ formatLabel(outlookIssuedAt) }}</span
+          >.
+        </p>
+
+        <div v-if="outlookLoading" class="accuracy-loading">
+          <div class="spinner" role="status" aria-label="Loading outlook"></div>
+          <span>Loading outlook…</span>
+        </div>
+
+        <div v-else class="outlook-grid">
+          <div v-for="day in outlookDays" :key="day.forecastDate" class="outlook-day">
+            <div class="outlook-day-name">{{ outlookDayName(day.forecastDate) }}</div>
+            <div class="outlook-day-date">{{ outlookDayDate(day.forecastDate) }}</div>
+            <div class="outlook-icon" :title="weatherLabel(day.description)" aria-hidden="true">
+              {{ weatherIcon(day.weatherCode) }}
+            </div>
+            <div class="outlook-cond">{{ weatherLabel(day.description) }}</div>
+            <div class="outlook-temps">
+              <span class="outlook-max">{{ fmtTemp(day.maxTempC) }}</span>
+              <span class="outlook-sep">/</span>
+              <span class="outlook-min">{{ fmtTemp(day.minTempC) }}</span>
+            </div>
+            <div class="outlook-rain">💧 {{ fmtRain(day.rainChancePct) }}</div>
           </div>
         </div>
       </section>
@@ -990,6 +1124,86 @@ body {
   font-size: 0.78rem;
   color: var(--text-muted);
   margin-top: 0.2rem;
+}
+
+/* ── 14-day outlook ────────────────────────────────────────── */
+.outlook-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.outlook-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 0.6rem;
+}
+
+/* Wide enough for a full week per row — 14 days lays out as two tidy weeks */
+@media (min-width: 760px) {
+  .outlook-grid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+}
+
+.outlook-day {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 0.7rem 0.4rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.outlook-day-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.outlook-day-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.outlook-icon {
+  font-size: 1.75rem;
+  line-height: 1.4;
+}
+
+.outlook-cond {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  min-height: 2.1em;
+  line-height: 1.05rem;
+}
+
+.outlook-temps {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
+.outlook-max {
+  color: #c2410c;
+}
+
+.outlook-sep {
+  color: var(--text-muted);
+  font-weight: 400;
+  margin: 0 0.15rem;
+}
+
+.outlook-min {
+  color: #4338ca;
+}
+
+.outlook-rain {
+  font-size: 0.75rem;
+  color: #0284c7;
+  font-weight: 600;
 }
 
 /* ── Accuracy table ────────────────────────────────────────── */
