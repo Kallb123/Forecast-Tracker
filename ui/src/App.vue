@@ -971,6 +971,11 @@ body {
 
 /* ── Layout ────────────────────────────────────────────────── */
 .container {
+  /* `margin: 0 auto` opts this flex item out of cross-axis stretch, so without
+     an explicit width it shrink-to-fits its widest content — the chart canvases
+     carry inline pixel widths, which would hold the page open past the viewport
+     on narrow screens. A definite width keeps the sizing one-way. */
+  width: 100%;
   max-width: 1100px;
   margin: 0 auto;
   padding: 1.5rem 1.25rem;
@@ -978,6 +983,7 @@ body {
   flex-direction: column;
   gap: 1.25rem;
   flex: 1;
+  min-width: 0;
 }
 
 /* ── Card ──────────────────────────────────────────────────── */
