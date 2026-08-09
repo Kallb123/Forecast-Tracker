@@ -252,6 +252,73 @@ from(bucket: "${bucket}")
   }
 });
 
+// GET /api/latest-outlook?location=london
+// The most recent forecast held for each of the next 14 days — for every
+// upcoming forecast_date, the snapshot with the newest timestamp wins.
+app.get("/api/latest-outlook", async (req, res) => {
+  try {
+    const { bucket, defaultLocation } = getInfluxConfig();
+    const location = req.query.location || defaultLocation;
+
+    if (!isSafeLocation(location)) {
+      return res.status(400).json({ error: "Invalid location parameter" });
+    }
+
+    const csv = await queryInflux(`
+from(bucket: "${bucket}")
+  |> range(start: -7d)
+  |> filter(fn: (r) => r._measurement == "forecast_daily")
+  |> filter(fn: (r) => r.location == "${location}")
+  |> filter(fn: (r) =>
+      r._field == "max_temp_c" or
+      r._field == "min_temp_c" or
+      r._field == "rain_chance_pct" or
+      r._field == "weather_code" or
+      r._field == "intensity" or
+      r._field == "description")
+  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> sort(columns: ["_time"])
+`);
+
+    const rows = parseInfluxCSV(csv);
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Keep only the newest snapshot per upcoming forecast_date
+    const latestByDate = {};
+    for (const r of rows) {
+      if (!r.forecast_date || !r._time || r.max_temp_c === "") continue;
+      if (r.forecast_date < today) continue;
+      const current = latestByDate[r.forecast_date];
+      if (!current || r._time > current._time) latestByDate[r.forecast_date] = r;
+    }
+
+    const days = Object.keys(latestByDate)
+      .sort()
+      .slice(0, 14)
+      .map((forecastDate) => {
+        const r = latestByDate[forecastDate];
+        return {
+          forecastDate,
+          issueDate: r.issue_date || "",
+          time: r._time,
+          minTempC: parseNullableNumber(r.min_temp_c),
+          maxTempC: parseNullableNumber(r.max_temp_c),
+          rainChancePct: parseNullableNumber(r.rain_chance_pct),
+          weatherCode: parseNullableNumber(r.weather_code),
+          description: r.description || "",
+          intensity: parseNullableNumber(r.intensity)
+        };
+      });
+
+    const issuedAt = days.reduce((newest, d) => (d.time > newest ? d.time : newest), "");
+
+    res.json({ location, issuedAt, days });
+  } catch (err) {
+    console.error("[forecast-ui] /api/latest-outlook error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/accuracy-by-horizon?location=london
 app.get("/api/accuracy-by-horizon", async (req, res) => {
   try {
