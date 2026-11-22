@@ -237,7 +237,7 @@ defaults and surfaces Influx errors per request).
 ## Deployment & CI
 
 - **Images:** `tracker/Dockerfile` (single stage, prod deps + `src/`) and `ui/Dockerfile`
-  (multi-stage: Vite build then runtime with `server.js` + `dist/`). Both are `node:20-alpine`.
+  (multi-stage: Vite build then runtime with `server.js` + `dist/`). Both are `node:24-alpine`.
 - **Compose:** `docker-compose.yml` runs `forecast-tracker`, `forecast-ui` (port 3000), and
   `influxdb:2` (port 8086, persistent volume, healthcheck). Both app services wait for the Influx
   healthcheck. Credentials are `CHANGE_ME_*` placeholders that must be replaced, identically, in
