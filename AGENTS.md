@@ -27,6 +27,7 @@ provider extension point, and the design decisions that constrain changes here.
 | `ui/` | Web app — ES modules, Express 5 API (`server.js`) + Vue 3 SPA (`src/App.vue`) |
 | `docker-compose.yml` | Full stack: tracker + ui + InfluxDB 2 |
 | `.github/workflows/` | CI: collector tests, UI build, GHCR image publish on release |
+| `.github/dependabot.yml` | Dependabot version updates (npm, Docker base images, Actions) with release cooldown |
 
 ## Building and testing
 
