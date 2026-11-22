@@ -1,0 +1,72 @@
+# Dependabot version updates.
+#
+# Safety choices:
+# - cooldown: a new release must be public for a while before Dependabot proposes it, so
+#   compromised or quickly-yanked releases are usually caught before they reach a PR.
+#   Security updates are not delayed by cooldown.
+# - minor/patch updates are grouped into one PR per ecosystem; major updates arrive as
+#   separate PRs so breaking changes are reviewed one at a time.
+# - every PR is gated by the existing CI workflows (tracker/** and ui/** paths).
+version: 2
+
+updates:
+  # UI web app (Express 5 + Vue 3 + Vite)
+  - package-ecosystem: npm
+    directory: /ui
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    versioning-strategy: increase-if-necessary
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    groups:
+      ui-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Collector — intentionally has zero runtime dependencies; this only keeps the
+  # lockfile honest if that ever changes.
+  - package-ecosystem: npm
+    directory: /tracker
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    cooldown:
+      default-days: 7
+
+  # Node base images for both service images.
+  - package-ecosystem: docker
+    directories:
+      - /tracker
+      - /ui
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
+    cooldown:
+      default-days: 7
+    ignore:
+      # Node major upgrades (e.g. to the next LTS) are done deliberately, not automatically.
+      - dependency-name: node
+        update-types:
+          - version-update:semver-major
+    groups:
+      node-base-image:
+        patterns:
+          - node
+
+  # GitHub Actions used by CI and the GHCR publish workflow.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"
